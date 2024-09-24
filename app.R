@@ -1,4 +1,11 @@
 library(shiny)
+library(ggplot2)
+
+# Sample dataset
+data <- data.frame(
+  x = seq(1, 100),
+  y = rnorm(100)
+)
 
 # Define UI
 ui <- fluidPage(
@@ -6,20 +13,25 @@ ui <- fluidPage(
   sidebarLayout(
     sidebarPanel(
       numericInput(inputId =  "numInput",label = "Enter a number:", value = 5),
-      sliderInput(inputId =  "numSlider",label = "Select a number:", min = 1, max = 10, value = 5, animate = FALSE, step = 0.5),
+      sliderInput(inputId =  "numSlider",label = "Select a number:", min = 1, max = 50, value = 10, animate = FALSE, step = 1),
       textInput(inputId = "txtInput",label =  "Enter text:", placeholder = "Enter input here"),
       actionButton(inputId = "actionBtn",label = "Display Message", icon = ),
       checkboxInput(inputId = "checkbox", label = "Checkbox here", value = FALSE),
       checkboxGroupInput(inputId = "groupCheckBox", label = "Select option: ", choices = c("Option 1", "Option 2", "Option 3"), inline = FALSE),
       radioButtons(inputId = "choice", label = "Choice Example", choices = c("Choose 1", "Choose 2", "Choose 3"), inline = FALSE),
-      selectInput(inputId = "selectInput", label = "Select input", choices = c("Select 1", "Select 2", "Select 3"), multiple = TRUE)
+      selectInput(inputId = "selectInput", label = "Select input", choices = c("Select 1", "Select 2", "Select 3"), multiple = TRUE),
+      dateInput(inputId = "dateInput", label = "Select date", value = "2021-01-01"),
+      dateRangeInput(inputId = "dateRangeInput", label = "Select date range", start = "2021-01-01", end = "2021-01-31"),
+      fileInput(inputId = "fileInput", label = "Upload file", multiple = TRUE),
+
     ),
     mainPanel(
       textOutput("doubleOutput"),
       plotOutput(outputId = "plot",height = 500,),
       textOutput("messageOutput"),
       textOutput("newMessageOutput"),
-      dataTableOutput(outputId = "tableOutput")
+      dataTableOutput(outputId = "tableOutput"),
+      downloadButton(outputId = "downloadData", label = "Download Data")
     )
   )
 )
@@ -37,8 +49,9 @@ server <- function(input, output, session) {
   # Reactive plot output based on the slider value
   output$plot <- renderPlot({
     input_val <- input$numSlider
-    plot(x = seq(input_val,1), y = seq(1, input_val), type = "l",
-         main = paste("Sequence from 1 to", input_val))
+    ggplot(data[1:input_val, ], aes(x = x, y = y)) +
+      geom_point() +
+      labs(title = paste("Scatter plot of first", input_val, "data points"))
   })
   
   # Observer for button click event
@@ -54,6 +67,7 @@ server <- function(input, output, session) {
     input_select <- input$selectInput
     paste("You are select option: ",input_checkbox, "and choose in choice: ",input_choice, "select: ", input_select)
   })
+  output$tableOutput <- renderDataTable({data})
 }
 
 # Run the application
